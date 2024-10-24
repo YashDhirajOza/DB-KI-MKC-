@@ -3,6 +3,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+#define COLUMN_USERNAME_SIZE 32;
+#define COLUMN_EMAIL_SIZE 255;
++#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
+typedef struct{
+  uint32_t id;
+  char usename[COLUMN_USERNAME_SIZE];
+  char email[COLUMN_EMAIL_SIZE];
+}Row;
 
 // Input buffer structure
 typedef struct {
@@ -28,6 +36,7 @@ typedef enum {
 
 typedef struct {
     StatementType type;
+    ROW row_to_insert; // only used by insert statement 
 } Statement;
 
 // Function prototypes
@@ -82,6 +91,11 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
     if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
         statement->type = STATEMENT_INSERT;
+        int args_assigned=sscanf(input_buffer->buffer,"insert %d %s %s ",&(statement->row_to_insert.id),
+        statement->row_to_insert.username,statement->row_tp_insert.email);
+        if(args_assigned <3){
+          return PREPARE_SYNTAX_ERROR;
+        }
         return PREPARE_SUCCESS;
     }
     if (strcmp(input_buffer->buffer, "select") == 0) {
